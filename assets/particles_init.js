@@ -58,4 +58,5 @@ window.onload = function() {
     },
     "retina_detect": true
 });
-});};
+},1000);
+};
