@@ -194,7 +194,7 @@ instructions_about_layout = dbc.Container([
 ], className="dbc", fluid=True)
 
 #particles inclusion and homepage layout
-particles_div = html.Div(id='particles-js', style={'width': '100vw', 'height': '100vh', 'position': 'fixed', 'zIndex': '2','backgroundColor': '#939AA1', 'display': 'none'})
+particles_div = html.Div(id='particles-js', style={'width': '100vw', 'height': '100vh', 'position': 'fixed', 'zIndex': '2','backgroundColor': '#939AA1', 'display': 'block'})
 home_layout = html.Div([
     html.Div([
         html.H3("Welcome to the Internal Linking Visualization App!"),

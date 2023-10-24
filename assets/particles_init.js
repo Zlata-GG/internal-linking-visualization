@@ -1,5 +1,6 @@
 window.onload = function() {
-particlesJS('particles-js', {
+    setTimeout(function() {
+        particlesJS('particles-js', {
     "particles": {
         "number": {
             "value": 80,
@@ -57,4 +58,4 @@ particlesJS('particles-js', {
     },
     "retina_detect": true
 });
-};
+});};
