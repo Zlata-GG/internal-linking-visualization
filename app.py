@@ -12,6 +12,7 @@ os.environ['FLASK_DEBUG'] = '1'
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LITERA],
            suppress_callback_exceptions=True)
+server= app.server
 #my functions
 df = pd.DataFrame()
 filtered_words = []
