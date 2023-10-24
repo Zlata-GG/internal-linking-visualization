@@ -9,17 +9,17 @@ particlesJS('particles-js', {
             }
         },
         "color": {
-            "value": "#02B875" // Green node color
+            "value": "#02B875" 
         },
         "shape": {
             "type": "circle",
             "stroke": {
-                "width": 3, // Thicker edges
-                "color": "#ffffff" // Red color for edges
+                "width": 3, 
+                "color": "#ffffff" 
             }
         },
         "size": {
-            "value": 3 // Even smaller nodes
+            "value": 3 
         },
         "move": {
             "enable": true,
