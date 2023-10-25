@@ -372,14 +372,14 @@ def update_include_graph_and_layout(contents, selected_layout, n_clicks, reset_c
         return generate_elements(df), {'name': selected_layout}, no_update,df.to_dict('records')
      
     elif trigger_id == 'include-apply-filter':
-        if keyword:
-            filtered_words = [keyword]  # Only consider the current keyword
+        if keyword and keyword not in filtered_words:
+            filtered_words.append(keyword)
         else:
             return no_update, no_update, 'You included URLs that contain words: ',no_update
         
         filtered_df = df[df.apply(
-            lambda row: re.search(keyword, row['source']) is not None or
-            re.search(keyword, row['destination']) is not None,
+            lambda row: any(re.search(keyword, row['source']) is not None or
+            re.search(keyword, row['destination']) is not None for kw in filtered_words),
             axis=1
         )]
         
