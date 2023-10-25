@@ -69,6 +69,7 @@ main_layout = dbc.Container([
     html.H3('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'30px'}) ,
     html.H3('Scroll to zoom-in the graph, to identify the nodes that you would like to filter out from graph.',style={'fontSize': '0.8em'}),
     html.H3('Uncover  unique linking opportunities or outliers. To refine your graph, input keywords from your URLs or apply regex patterns.', style={'fontSize': '0.8em'}),
+    html.H3('Use table bellow and select rows. The corresponding nodes and edges will turn red, allowing you to better visualize the selected URLs.', style={'fontSize':'0.8em'}),
     html.Hr(),
     dcc.Upload(
         id='upload-data',
@@ -215,8 +216,8 @@ instructions_about_layout = dbc.Container([
     html.P("Visualization assists in spotting areas where the linking structure may be too dense or too sparse. Dense areas might indicate over-concentration of links, while sparse areas could suggest missed opportunities for interlinking and improving the user journey. Overly dense linking areas might be diluting link equity or confusing users.",style={'marginLeft':'10px'}),
     html.H4('Instructions',style={'marginTop': '40px','marginBottom':'30px','marginLeft':'10px'}),
     html.P('This app has two main functionalities:', style={'marginLeft':'10px'}),
-    html.P("Excluding Words in URL Paths using Regex: filter out specific URLs or URL patterns you don't want to consider in the visualization.",style={'marginLeft':'10px'}),
-    html.P('Starting From Specific URLs and Expanding: you can choose specific URLs as starting points, or to just see internal linking of the page you are interested, and add/include additional words or regex patterns to understand their internal linking relationships. You can visualize internal linking to view of all URL that contains either of words you are adding. By seeing all pages that match either keyword, you might identify opportunities to create content that bridges the two topics or to add internal links between related pages',style={'marginLeft':'10px'}),
+    html.P("Filter by Excluding Words in URL Paths using Regex: filter out specific URLs or URL patterns you don't want to consider in the visualization. In table bellow you can select rows that are going to be marked red for URLs you are more interested in, as well as connections between them.",style={'marginLeft':'10px'}),
+    html.P('Filter by including - Starting From Specific URLs and Expanding: you can choose specific URLs as starting points, or to just see internal linking of the page you are interested, and add/include additional words or regex patterns to understand their internal linking relationships. You can visualize internal linking to view of all URL that contains either of words you are adding. By seeing all pages that match either keyword, you might identify opportunities to create content that bridges the two topics or to add internal links between related pages',style={'marginLeft':'10px'}),
     html.P('Uploading Your Data',style={'fontWeight':'bold', 'marginLeft':'10px'}),
     html.P('Make sure your CSV export of links has two columns "source" and "destination". To make this CSV file you can use inlinks report from a crawler.',style={'marginLeft':'10px'} ),
     html.P('Once your data is uploaded, use scoll to zoom and move in and out of the graph, and Reset button to cancel all filtering and stat from beginning.',style={'marginLeft':'10px'}),
