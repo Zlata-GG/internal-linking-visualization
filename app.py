@@ -1,4 +1,5 @@
 from dash import Dash, dcc, html, Input, Output, State, no_update, callback_context
+import dash_ag_grid as dag
 import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
 import pandas as pd
@@ -7,6 +8,7 @@ import re
 import dash
 import io
 from dash_iconify import DashIconify
+import json
 import os
 os.environ['FLASK_DEBUG'] = '1'
 
@@ -29,6 +31,7 @@ def apply_all_filters(df, filtered_words):
             axis=1
         )]
     return df
+
 #my navigation
 navbar = dbc.NavbarSimple(
     brand="Internal Linking Visualization",
@@ -110,10 +113,32 @@ main_layout = dbc.Container([
                 id="cytoscape-update-layout",
                 layout={"name": "circle"},
                 style={"width": "100%", "height": "500px"},
-                elements=[]
+                elements=[],
+                stylesheet=[
+        {
+            "selector": "node",
+            "style": {
+                "label": "data(id)"
+            }
+        }
+    ]
             )
         ]
-    )
+    ),
+    dag.AgGrid(
+    id='my_aggrid',
+    rowData=df.to_dict('records'),
+    columnDefs=[{'headerName': 'Source', 'field': 'source','flex':1},
+                {'headerName': 'Destination', 'field': 'destination','flex':1}],
+    style={'height': '600px', 'marginTop': '20px'},
+    selectedRows=[],
+    dashGridOptions={"rowSelection":"multiple"},
+    
+    ),
+    html.Div(id='selected-row-data', style={'display': 'none'})
+
+
+
 ], className="dbc", fluid=True)
 
 #second page layout
@@ -167,7 +192,15 @@ filter_by_including_layout = dbc.Container([
                 elements=[]
             )
         ]
-    )
+    ),
+    dag.AgGrid(
+    id='my_aggrid1',
+    rowData=df.to_dict('records'),
+    columnDefs=[{'headerName': 'Source', 'field': 'source','flex':1},
+                {'headerName': 'Destination', 'field': 'destination','flex':1}],
+    style={'height': '600px', 'marginTop': '20px'}
+),
+
 ], className="dbc", fluid=True)
  
 #layout of About&Instructions page
@@ -242,11 +275,12 @@ def display_page(pathname):
 @app.callback (
     [Output('cytoscape-update-layout', 'elements'),
      Output('cytoscape-update-layout', 'layout'),
-     Output('filtered-words','children')],
+     Output('filtered-words','children'),
+     Output('my_aggrid', 'rowData')],
     [Input('upload-data', 'contents'),
      Input('dropdown-update-layout', 'value'),
-     Input('apply-filter','n_clicks')],
-     Input('reset_filtering', 'n_clicks'),
+     Input('apply-filter','n_clicks'),
+     Input('reset_filtering', 'n_clicks')],
     State('input-keyword','value')
 )
 
@@ -257,27 +291,27 @@ def update_graph_and_layout(contents, selected_layout,n_clicks,reset_clicks,keyw
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if trigger_id == 'reset_filtering':
         filtered_words = []
-        return generate_elements(df), {'name': selected_layout}, 'You filtered out words: '
+        return generate_elements(df), {'name': selected_layout}, 'You filtered out words: ',no_update
     if trigger_id == 'dropdown-update-layout':
-        return no_update, {'name': selected_layout}, no_update
+        return no_update, {'name': selected_layout}, no_update, no_update
     elif trigger_id == 'upload-data':
         if contents is None:
-            return no_update, no_update, no_update
+            return no_update, no_update, no_update, no_update
         content_type, content_string = contents.split(',')
         decoded = base64.b64decode(content_string)
         
         try:
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))  
             if 'source' not in df.columns or 'destination' not in df.columns:
-                return no_update, no_update, "Error: The uploaded CSV file must have 'source' and 'destination' columns."
+                return no_update, no_update, "Error: The uploaded CSV file must have 'source' and 'destination' columns.",no_update
             
             # Check for missing values
             if df['source'].isnull().any() or df['destination'].isnull().any():
-                return no_update, no_update, "Error: The uploaded CSV file has missing values in 'source' or 'destination' columns."
+                return no_update, no_update, "Error: The uploaded CSV file has missing values in 'source' or 'destination' columns.", no_update
             
         except Exception as e:
-            return no_update, no_update, no_update
-        return generate_elements(df), {'name': selected_layout}, no_update
+            return no_update, no_update, no_update, no_update
+        return generate_elements(df), {'name': selected_layout}, no_update, df.to_dict('records')
      
     # Create elements for Cytoscape graph
         
@@ -290,15 +324,16 @@ def update_graph_and_layout(contents, selected_layout,n_clicks,reset_clicks,keyw
         # Update the message
         update_filtered_words = f"You filtered out words: {', '.join(filtered_words)}"
         
-        return generate_elements(filtered_df), {'name': selected_layout}, update_filtered_words
+        return generate_elements(filtered_df), {'name': selected_layout}, update_filtered_words,no_update
     
-    return no_update, no_update, no_update
+    return no_update, no_update, no_update,no_update
 
 # callback and function for second page to include URLs
 @app.callback (
     [Output('include-cytoscape-update-layout', 'elements'),
      Output('include-cytoscape-update-layout', 'layout'),
-     Output('include-filtered-words','children')],
+     Output('include-filtered-words','children'),
+     Output('my_aggrid1', 'rowData')],
     [Input('include-upload-data', 'contents'),
      Input('include-dropdown-update-layout', 'value'),
      Input('include-apply-filter','n_clicks'),
@@ -312,35 +347,35 @@ def update_include_graph_and_layout(contents, selected_layout, n_clicks, reset_c
     
     if trigger_id == 'include-reset_filtering':
         filtered_words = []
-        return generate_elements(df), {'name': selected_layout}, 'You included URLs that contain words: '
+        return generate_elements(df), {'name': selected_layout}, 'You included URLs that contain words: ',no_update
     
     if trigger_id == 'include-dropdown-update-layout':
-        return no_update, {'name': selected_layout}, no_update
+        return no_update, {'name': selected_layout}, no_update,no_update
     
     elif trigger_id == 'include-upload-data':
         if contents is None:
-            return no_update, no_update, no_update
+            return no_update, no_update, no_update,no_update
         content_type, content_string = contents.split(',')
         decoded = base64.b64decode(content_string)
         
         try:
             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))  
             if 'source' not in df.columns or 'destination' not in df.columns:
-                return no_update, no_update, "Error: The uploaded CSV file must have 'source' and 'destination' columns."
+                return no_update, no_update, "Error: The uploaded CSV file must have 'source' and 'destination' columns.",no_update
             
             # Check for missing values
             if df['source'].isnull().any() or df['destination'].isnull().any():
-                return no_update, no_update, "Error: The uploaded CSV file has missing values in 'source' or 'destination' columns."
+                return no_update, no_update, "Error: The uploaded CSV file has missing values in 'source' or 'destination' columns.",no_update
             
         except Exception as e:
             return no_update, no_update, no_update
-        return generate_elements(df), {'name': selected_layout}, no_update
+        return generate_elements(df), {'name': selected_layout}, no_update,df.to_dict('records')
      
     elif trigger_id == 'include-apply-filter':
         if keyword:
             filtered_words = [keyword]  # Only consider the current keyword
         else:
-            return no_update, no_update, 'You included URLs that contain words: '
+            return no_update, no_update, 'You included URLs that contain words: ',no_update
         
         filtered_df = df[df.apply(
             lambda row: re.search(keyword, row['source']) is not None or
@@ -350,9 +385,9 @@ def update_include_graph_and_layout(contents, selected_layout, n_clicks, reset_c
         
         update_filtered_words = f"You included URLs that contain words: {', '.join(filtered_words)}"
         
-        return generate_elements(filtered_df), {'name': selected_layout}, update_filtered_words
+        return generate_elements(filtered_df), {'name': selected_layout}, update_filtered_words,no_update
     
-    return no_update, no_update, no_update
+    return no_update, no_update, no_update,no_update
 
 #for reinitializing particles 
 @app.callback(
@@ -363,6 +398,80 @@ def update_particles(pathname):
     if pathname == '/':  
         return html.Script(src="/assets/particles_init.js")
     return dash.no_update
+#coloring nodes and edges by selecting aggrid
+@app.callback(
+    Output('selected-row-data', 'children'),
+    Input('my_aggrid', 'selectedRows')
+)
+def update_selected_row_data(selected_rows):
+    
+    if not selected_rows:
+        return dash.no_update
+    return json.dumps(selected_rows)
+
+@app.callback(
+    Output('cytoscape-update-layout', 'stylesheet'),
+    Input('selected-row-data', 'children')
+)
+def update_cytoscape_styles(selected_rows_json):
+    
+    if not selected_rows_json:
+        return dash.no_update
+
+    # Convert the JSON string into a list of dictionaries
+    selected_rows = json.loads(selected_rows_json)
+
+    selected_styles = []
+
+    for selected_row in selected_rows:
+        source = selected_row.get('source')
+        destination = selected_row.get('destination')
+        if source and destination:
+            selected_styles.extend([
+                {
+                    "selector": f'node[id = "{source}"]',
+                    "style": {
+                        "background-color": "red",
+                        "label": "data(id)"
+                    }
+                },
+                {
+                    "selector": f'node[id = "{destination}"]',
+                    "style": {
+                        "background-color": "red",
+                        "label": "data(id)"
+                    }
+                },
+                {
+                    "selector": f'edge[source = "{source}"][target = "{destination}"]',
+                    "style": {
+                        "line-color": "red"
+                    }
+                }
+            ])
+   
+    # Define the styles for the selected nodes and edge
+    default_styles = [
+        {
+            "selector": 'node',
+            "style": {
+                "label": "data(id)"
+            }
+        },
+        {
+            "selector": 'edge',
+            "style": {
+                "line-color": "gray"  # or whatever your default edge color is
+            }
+        }
+    ]
+
+    # Combine the default styles with the styles for the selected nodes and edges
+    combined_styles = default_styles + selected_styles
+
+    return combined_styles
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
