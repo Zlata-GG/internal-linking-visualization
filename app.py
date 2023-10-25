@@ -217,8 +217,8 @@ app.layout = html.Div([
     navbar,
     particles_div,
     html.Div(id='page-content'),  
-    html.Script(src="/assets/particles.js"),
-    html.Script(src="/assets/particles_init.js")
+    html.Script(src="/assets/particles.js", defer=True),
+    html.Script(src="/assets/particles_init.js",defer=True)
 ])
 
 #callbacks and functions
