@@ -66,10 +66,10 @@ navbar = dbc.NavbarSimple(
 )
 #Filter by excluding
 main_layout = dbc.Container([
-    html.H3('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'30px'}) ,
-    html.H3('Scroll to zoom-in the graph, to identify the nodes that you would like to filter out from graph.',style={'fontSize': '0.8em'}),
-    html.H3('Uncover  unique linking opportunities or outliers. To refine your graph, input keywords from your URLs or apply regex patterns.', style={'fontSize': '0.8em'}),
-    html.H3('Use table bellow and select rows. The corresponding nodes and edges will turn red, allowing you to better visualize the selected URLs.', style={'fontSize':'0.8em'}),
+    html.H3('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'30px', 'fontWeight': '400'}) ,
+    html.H3('Scroll to zoom-in the graph, to identify the nodes that you would like to filter out from graph.',style={'fontSize': '0.8em', 'fontWeight': '400'}),
+    html.H3('Uncover  unique linking opportunities or outliers. To refine your graph, input keywords from your URLs or apply regex patterns.', style={'fontSize': '0.8em',  'fontWeight': '400'}),
+    html.H3('Use table bellow and select rows. The corresponding nodes and edges will turn red, allowing you to better visualize the selected URLs.', style={'fontSize':'0.8em', 'fontWeight': '400'}),
     html.Hr(),
     dcc.Upload(
         id='upload-data',
@@ -145,8 +145,9 @@ main_layout = dbc.Container([
 #second page layout
 filter_by_including_layout = dbc.Container([
     html.H3('Filter by Including',style={'marginTop': '20px'}),
-    html.H4('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'15px'}),
-    html.H4('Scroll to zoom-in the graph, to identify the nodes that you would like to see how they are linked trough website.',style={'fontSize': '0.8em','marginTop':'15px', 'marginBottom':'15px'}),
+    html.H4('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'15px','fontWeight': '400'}),
+    html.H4('Zoom in on the graph to explore how specific nodes (URLs) interconnect within your website.',style={'fontSize': '0.8em','fontWeight': '400'}),
+    html.H4('Add specific words from URLs or use regex patterns to further include and visualize specific links in the graph.',style={'fontSize': '0.8em', 'marginBottom':'15px','fontWeight': '400'}),
     dcc.Upload(
         id='include-upload-data', 
         children=dbc.Button('Upload CSV File', color='primary'),
@@ -232,8 +233,8 @@ particles_div = html.Div(id='particles-js', style={'width': '100vw', 'height': '
 home_layout = html.Div([
     html.Div([
         html.H3("Welcome to the Internal Linking Visualization App!"),
-        html.P("Visualize your website's internal linking structure. Upload your CSV, apply filters, and explore the graph."),
-        html.P("Navigate through the tabs above to get started.")
+        html.P("Visualize your website's internal linking structure. Upload your CSV, apply filters, and explore the graph.", style={'fontFamily': 'Roboto'}),
+        html.P("Navigate through the tabs above to get started.", style={'fontFamily': 'Roboto'})
     ], style={
         'textAlign': 'center',
         'margin': '150px auto',
