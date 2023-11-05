@@ -360,7 +360,7 @@ def update_particles(pathname):
    Input('my_aggrid', 'selectedRows')
 )
 def update_selected_row_data(selected_rows):
-    if not selected_rows:
+    if selected_rows is None or len(selected_rows) == 0:
         return dash.no_update
     return json.dumps(selected_rows)
 
