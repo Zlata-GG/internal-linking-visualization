@@ -15,8 +15,9 @@ import os
 app = Dash(__name__, external_stylesheets=[dbc.themes.LITERA],
            suppress_callback_exceptions=True)
 server= app.server
-global df
+global df, link_counts
 df = pd.DataFrame()
+link_counts = pd.DataFrame()
 
 
 #my functions
@@ -54,6 +55,15 @@ navbar = dbc.NavbarSimple(
                 href="https://linkedin.com/in/zlata-garmendia",
                 target="_blank"
             )
+        ),
+        dbc.NavItem(
+            dbc.NavLink(
+                children=[
+                    DashIconify(icon="devicon:github", color="black", width=24,height=24)
+                ],
+                href="https://github.com/Zlata-GG/internal-linking-visualization/tree/main",
+                target="_blank"
+            )
         )
     ],
     color="dark",
@@ -61,9 +71,9 @@ navbar = dbc.NavbarSimple(
 )
 #Main layout
 main_layout = dbc.Container([
-    html.H3('Upload your CSV containing internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'20px', 'fontWeight': '400'}) ,
-    html.H3('Scroll to zoom-in the graph and click on nodes to move them, To refine your graph, filter keywords from your URLs or apply regex patterns.',style={'fontSize': '0.8em', 'fontWeight': '400'}),
-    html.H3('Use table bellow, select rows, and the corresponding nodes and edges will turn red.', style={'fontSize':'0.8em', 'fontWeight': '400'}),
+    html.H3('Ensure your CSV contains internal links with "source" and "destination" columns.',style={'fontSize': '0.8em','marginTop':'20px', 'fontWeight': '400'}) ,
+    html.H3('Scroll to zoom in and out of the graph. Click on nodes to move them around. To refine your graph, filter keywords from your URLs or apply regex patterns.',style={'fontSize': '0.8em', 'fontWeight': '400'}),
+    html.H3('Use left table bellow, select rows to turn corresponding nodes and edges in red. The table on the right displays the total number of links each URL has.', style={'fontSize':'0.8em', 'fontWeight': '400'}),
     html.Hr(),
     dcc.Upload(
         id='upload-data',
@@ -130,28 +140,42 @@ main_layout = dbc.Container([
             )
         ]
     ),
-    dag.AgGrid(
-    id='my_aggrid',
-    rowData=[],
-    columnDefs=[{'headerName': 'Source URL', 'field': 'source','flex':1,'sortable': True, 'filter': True},
+    dbc.Row([
+        dbc.Col([
+            dag.AgGrid(
+                id='my_aggrid',
+                rowData=[],
+                columnDefs=[{'headerName': 'Source URL', 'field': 'source','flex':1,'sortable': True, 'filter': True},
                 {'headerName': 'Destination URL', 'field': 'destination','flex':1,'sortable': True, 'filter': True}],
-    style={'height': '600px', 'marginTop': '20px'},
-    selectedRows=[],
-    dashGridOptions={"rowSelection":"multiple","rowMultiSelectWithClick": True},
-    
-    ),
-    html.Div(id='selected-row-data', style={'display': 'none'})
-    
-
-
-
+                style={'height': '600px', 'marginTop': '20px'},
+                className='ag-theme-alpine',
+                selectedRows=[],
+                dashGridOptions={"rowSelection":"multiple","rowMultiSelectWithClick": True},
+                ),
+        
+            html.Div(id='selected-row-data', style={'display': 'none'}),
+        ], width=6),
+    dbc.Col([
+        dag.AgGrid(
+            id='aggregated-aggrid',
+            rowData=link_counts.to_dict('records'),
+            columnDefs=[
+                {'headerName': 'URL', 'field': 'URL', 'flex': 1, 'sortable': True, 'filter': True},
+                {'headerName': 'Number of Links', 'field': 'Number of Links', 'flex': 1, 'sortable': True, 'filter': True}
+                ],
+            style={'height': '600px', 'marginTop': '20px'},
+            selectedRows=[],
+           
+)
+ ],width=6)
+]),
 ], className="dbc", fluid=True)
 
  
 #layout of About & Instructions page
 instructions_about_layout = dbc.Container([
-    html.H4('The Importance of Visualizing Internal Links', style={'marginTop': '50px','marginBottom':'30px','marginLeft':'10px'}),
-    html.P('Visualizing your website\'s internal linking structure is important for:',style={'marginLeft':'10px'}),
+    html.H4('Why Visualization Matters?', style={'marginTop': '50px','marginBottom':'30px','marginLeft':'10px'}),
+    html.P('Visualizing the internal linking structure of your website serves as a powerful tool for several reasons:',style={'marginLeft':'10px'}),
     html.H6("Optimizing User Experience (UX) and SEO:",style={'fontWeight': 'bold','marginLeft':'10px'}),
     html.P("Understanding how pages interlink helps in ensuring that users and search engines can easily navigate and find content on your site.",style={'marginLeft':'10px'}),           
     html.H6("Highlighting Conversion Paths",style={'fontWeight': 'bold', 'marginLeft':'10px'}),
@@ -160,11 +184,12 @@ instructions_about_layout = dbc.Container([
     html.P("Visualization assists in spotting areas where the linking structure may be too dense or too sparse. Dense areas might indicate over-concentration of links, while sparse areas could suggest missed opportunities for interlinking and improving the user journey. Overly dense linking areas might be diluting link equity or confusing users.",style={'marginLeft':'10px'}),
     html.H4('Instructions',style={'marginTop': '40px','marginBottom':'30px','marginLeft':'10px'}),
     html.P('This app has two main functionalities:', style={'marginLeft':'10px'}),
-    html.P("Filter by Excluding Words in URL Paths using Regex: filter out specific URLs or URL patterns you don't want to consider in the visualization. In table bellow you can select rows that are going to be marked red for URLs you are more interested in, as well as connections between them.",style={'marginLeft':'10px'}),
-    html.P('Filter by including - Starting From Specific URLs and Expanding: you can choose specific URLs as starting points, or to just see internal linking of the page you are interested, and add/include additional words or regex patterns to understand their internal linking relationships. You can visualize internal linking to view of all URL that contains either of words you are adding. By seeing all pages that match either keyword, you might identify opportunities to create content that bridges the two topics or to add internal links between related pages',style={'marginLeft':'10px'}),
+    html.P("Filter by Excluding words in URL Paths using Regex: Exclude specific URLs or URL patterns from visualization. Select rows in the table bellow to mark correcsponding URLs and their connections in red, to focus more on certain URLs.",style={'marginLeft':'10px'}),
+    html.P('Filter by including - Choose specific URLs to just see internal linking of the page you are interested, add/include additional words or regex patterns to understand their internal linking relationships. By seeing all pages that match either keyword, you might identify opportunities to create content that bridges the two topics or to add internal links between related pages.',style={'marginLeft':'10px'}),
     html.P('Uploading Your Data',style={'fontWeight':'bold', 'marginLeft':'10px'}),
-    html.P('Make sure your CSV export of links has two columns "source" and "destination". To make this CSV file you can use inlinks report from a crawler.',style={'marginLeft':'10px'} ),
-    html.P('Once your data is uploaded, use scoll to zoom and move in and out of the graph, and Reset button to cancel all filtering and stat from beginning.',style={'marginLeft':'10px'}),
+    html.P('Ensure your CSV file has two columns "source" and "destination". You can generate this file from an inlinks report from a web crawler.',style={'marginLeft':'10px'} ),
+    html.P('After uploading, use scoll to zoom and navigate the graph. Click on nodes and move them. Use "Reset" button to cancel all filtering and start afresh.',style={'marginLeft':'10px'}),
+    html.P('Use tables bellow the graph - you can sort and filter columns, by selecting rows in first table graph nodes and egdes turn red for better visualization. Second table shows links aggregated by URL.',style={'marginLeft':'10px'}),
     html.H4('Challenges with Complex Graphs',style={'marginTop': '30px','marginBottom':'30px','marginLeft':'10px'}),
     html.P('Complexity of graphs that represent linking structure makes it challenging to discover patterns, evaluate link equity distribution, or even identify potential problem areas.', style={'marginLeft':'10px'}),
     html.P('This tool aims to alleviate these challenges. While it\'s essential to understand the full picture, not every link or page holds equal importance. Some, like categories, external links, or informational pages (like \'Impressum\'), might not directly impact conversions. By allowing users to exclude specific parts of the website, this tool simplifies the visualization to focus on the links that matter most – that are crucial for conversions.', style={'marginLeft':'10px'}),
@@ -198,7 +223,7 @@ home_layout = html.Div([
         'borderRadius': '16px',
         'maxWidth': '450px',
         'boxShadow': '0px 8px 30px rgba(0, 0, 0, 0.1)',
-        'zIndex': '1'  # Set a higher zIndex
+        'zIndex': '1'  
     })
 ], style={'position': 'relative'})  
 
@@ -289,7 +314,9 @@ def update_graph_and_layout (contents, selected_layout, n_clicks, reset_clicks, 
             # Check for missing values
             if df['source'].isnull().any() or df['destination'].isnull().any():
                 return no_update, no_update, "Error: The uploaded CSV file has missing values in 'source' or 'destination' columns.", no_update, no_update
-            
+            link_counts = df['source'].value_counts().reset_index()
+            link_counts = link_counts.rename(columns={'source': 'URL', 'count': 'Number of links'})
+
         except Exception as e:
             return no_update, no_update, no_update, no_update, no_update
         return generate_elements(df), {'name': selected_layout}, no_update, no_update, df.to_dict('records')
@@ -333,7 +360,6 @@ def update_particles(pathname):
    Input('my_aggrid', 'selectedRows')
 )
 def update_selected_row_data(selected_rows):
-    
     if not selected_rows:
         return dash.no_update
     return json.dumps(selected_rows)
@@ -390,7 +416,7 @@ def update_cytoscape_styles(selected_rows_json):
         {
             "selector": 'edge',
             "style": {
-                "line-color": "gray"  # or whatever your default edge color is
+                "line-color": "gray" 
             }
         }
     ]
@@ -399,6 +425,29 @@ def update_cytoscape_styles(selected_rows_json):
     combined_styles = default_styles + selected_styles
 
     return combined_styles
+@app.callback(
+    Output('aggregated-aggrid', 'rowData'),
+    [Input('upload-data', 'contents')]
+)
+def update_aggregated_table(contents):
+    global link_counts
+    if contents is not None:
+        content_type, content_string = contents.split(',')
+        decoded = base64.b64decode(content_string)
+        try:
+            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))  
+            if 'source' not in df.columns or 'destination' not in df.columns:
+                return [],no_update
+            if df['source'].isnull().any() or df['destination'].isnull().any():
+                return [],no_update
+            
+            link_counts = df['source'].value_counts().reset_index()
+            link_counts = link_counts.rename(columns={'source': 'URL', 'count': 'Number of Links'})
+            
+            return link_counts.to_dict('records')
+        except Exception as e:
+            return []
+    return []
 
 
 
